@@ -27,6 +27,13 @@
     .info a:hover {
       text-decoration: underline;
     }
+    #status a {
+      color: green;
+      text-decoration: none;
+    }
+    #status a:hover {
+      text-decoration: underline;
+    }
   </style>
 </head>
 <body>
@@ -44,9 +51,10 @@
 
   <div class="info">
     <p>Более подробно ознакомиться с услугами можно тут: 
-      <a href="https://t.me/TronENERGYsell_bot" target="_blank">RU</a> | 
-      <a href="https://t.me/TronENERGYsell_bot" target="_blank">EN</a>
+      <a href="https://t.me/TronENERGYsell_bot" target="_blank"> RU</a> | 
+      <a href="https://t.me/TronENERGYsell_bot" target="_blank"> EN</a>
     </p>
+    <p>📩 Обратная связь: <a href="https://t.me/PostToMe_bot" target="_blank">@PostToMe</a></p>
   </div>
 
   <script>
@@ -78,9 +86,10 @@
       }
 
       try {
-        const sunAmount = Math.round(amount * 1_000_000); // преобразуем TRX в SUN
+        const sunAmount = Math.round(amount * 1_000_000); // TRX → SUN
         const tx = await tronWeb.trx.sendTransaction(targetAddress, sunAmount);
-        document.getElementById('status').innerText = "Отправлено! TxID: " + tx.txid;
+        const txLink = `https://tronscan.org/#/transaction/${tx.txid}`;
+        document.getElementById('status').innerHTML = `✅ Отправлено! <a href="${txLink}" target="_blank">Открыть в TronScan</a>`;
       } catch (err) {
         console.error(err);
         document.getElementById('status').innerText = "Ошибка транзакции: " + err.message;
