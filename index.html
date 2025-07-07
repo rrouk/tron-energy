@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8" />
+  <title>Купить Энергию — Крипто Бот</title>
+  <script src="https://unpkg.com/@tronweb3/tronwallet-adapter-tronlink/dist/index.umd.min.js"></script>
+  <style>
+    body {
+      font-family: sans-serif;
+      padding: 2rem;
+      text-align: center;
+    }
+    button {
+      padding: 1rem;
+      margin: 1rem;
+      font-size: 1.2rem;
+      cursor: pointer;
+    }
+  </style>
+</head>
+<body>
+
+  <h1>Купить Энергию через TronLink</h1>
+  <p id="wallet-address">Кошелёк: Не подключен</p>
+
+  <button id="connect-btn">🔌 Подключить TronLink</button>
+  <br>
+
+  <button onclick="sendTRX(8.005)">⚡ Арендовать 66К энергии на 10 минут (8.005 TRX)</button>
+  <button onclick="sendTRX(16.005)">⚡ Арендовать 131К энергии на 10 минут (16.005 TRX)</button>
+  
+  <p id="status"></p>
+
+  <script>
+    const targetAddress = 'TH7iQrEVhmrGTCfoVnESRbpr7JbSwwPMLE'; // 🔁 Укажи свой адрес
+    let tronWeb;
+
+    async function connectWallet() {
+      if (!window.tronLink) {
+        alert("Установите расширение TronLink!");
+        return;
+      }
+
+      try {
+        await window.tronLink.request({ method: 'tron_requestAccounts' });
+        tronWeb = window.tronWeb;
+        const address = tronWeb.defaultAddress.base58;
+        document.getElementById('wallet-address').innerText = 'Кошелёк: ' + address;
+        document.getElementById('status').innerText = "Готов к переводу!";
+      } catch (err) {
+        console.error(err);
+        alert("Ошибка подключения к TronLink");
+      }
+    }
+
+    async function sendTRX(amount) {
+      if (!tronWeb) {
+        alert("Сначала подключите TronLink!");
+        return;
+      }
+
+      try {
+        const sunAmount = Math.round(amount * 1_000_000); // преобразуем TRX в SUN
+        const tx = await tronWeb.trx.sendTransaction(targetAddress, sunAmount);
+        document.getElementById('status').innerText = "Отправлено! TxID: " + tx.txid;
+      } catch (err) {
+        console.error(err);
+        document.getElementById('status').innerText = "Ошибка транзакции: " + err.message;
+      }
+    }
+
+    document.getElementById('connect-btn').onclick = connectWallet;
+  </script>
+
+</body>
+</html>
