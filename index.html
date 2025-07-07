@@ -10,15 +10,16 @@
   <meta name="description" content="Арендуйте энергию в сети TRON (TRC20) через TronLink. Экономьте на комиссиях при переводах USDT. Просто, быстро и безопасно.">
   <meta name="keywords" content="TRON, TRC20, аренда энергии, TronLink, TRX, блокчейн, USDT, комиссия, экономия, energy, delegate energy">
 
-  <!-- Open Graph / Social Media -->
+  <!-- Open Graph -->
   <meta property="og:title" content="Арендовать энергию TRC20 | Tron Energy Rent">
   <meta property="og:description" content="Получите энергию в сети TRON через TronLink и экономьте на комиссиях при переводах USDT. Простой интерфейс, мгновенная активация.">
-  <meta property="og:image" content="https://rrouk.github.io/tron-energy/preview.jpg ">
-  <meta property="og:url" content="https://rrouk.github.io/tron-energy/ ">
+  <meta property="og:image" content="https://rrouk.github.io/tron-energy/preview.jpg">
+  <meta property="og:url" content="https://rrouk.github.io/tron-energy/">
   <meta property="og:type" content="website">
 
   <title>Арендовать Энергию</title>
   <script src="https://unpkg.com/@tronweb3/tronwallet-adapter-tronlink/dist/index.umd.min.js"></script>
+
   <style>
     body {
       font-family: 'Segoe UI', sans-serif;
@@ -30,6 +31,14 @@
 
     h1 {
       color: #222;
+    }
+
+    .preview-img {
+      width: 280px;
+      max-width: 90%;
+      margin: 1rem auto;
+      border-radius: 12px;
+      box-shadow: 0 4px 10px rgba(0, 0, 0, 0.08);
     }
 
     button {
@@ -84,13 +93,20 @@
 <body>
 
   <h1>Арендовать Энергию TRC20 через TronLink</h1>
+
+  <!-- 📸 Картинка-превью -->
+  <img src="preview.jpg" alt="Превью аренды энергии" class="preview-img">
+
   <p id="wallet-address">Кошелёк: Не подключен</p>
 
   <button id="connect-btn">🔌 Подключить TronLink</button>
   <br>
 
   <button onclick="sendTRX(8.005)">⚡ 66K энергии на 10 минут</button>
+  <br>
+  
   <button onclick="sendTRX(16.005)">⚡ 131K энергии на 10 минут</button>
+  <br>
 
   <p id="status"></p>
 
