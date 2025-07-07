@@ -6,31 +6,61 @@
   <script src="https://unpkg.com/@tronweb3/tronwallet-adapter-tronlink/dist/index.umd.min.js"></script>
   <style>
     body {
-      font-family: sans-serif;
+      font-family: 'Segoe UI', sans-serif;
+      background: #f4f8fb;
+      color: #333;
       padding: 2rem;
       text-align: center;
     }
-    button {
-      padding: 1rem;
-      margin: 1rem;
-      font-size: 1.2rem;
-      cursor: pointer;
+
+    h1 {
+      color: #222;
     }
+
+    button {
+      padding: 1rem 2rem;
+      margin: 1rem;
+      font-size: 1.1rem;
+      font-weight: bold;
+      border: none;
+      border-radius: 12px;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      background: linear-gradient(135deg, #00c2ff, #0077ff);
+      color: white;
+      box-shadow: 0 4px 10px rgba(0, 119, 255, 0.3);
+    }
+
+    button:hover {
+      background: linear-gradient(135deg, #0077ff, #005ce6);
+      transform: translateY(-2px);
+      box-shadow: 0 6px 14px rgba(0, 119, 255, 0.4);
+    }
+
     .info {
       margin-top: 2rem;
       font-size: 1rem;
     }
+
     .info a {
       color: #0077cc;
       text-decoration: none;
     }
+
     .info a:hover {
       text-decoration: underline;
     }
+
+    #status {
+      margin-top: 1rem;
+      font-weight: bold;
+    }
+
     #status a {
       color: green;
       text-decoration: none;
     }
+
     #status a:hover {
       text-decoration: underline;
     }
@@ -38,27 +68,27 @@
 </head>
 <body>
 
-  <h1>Арендовать Энергию trc20 через TronLink</h1>
+  <h1>Арендовать Энергию TRC20 через TronLink</h1>
   <p id="wallet-address">Кошелёк: Не подключен</p>
 
   <button id="connect-btn">🔌 Подключить TronLink</button>
   <br>
 
-  <button onclick="sendTRX(8.005)">⚡ Арендовать 66К энергии на 10 минут (8.005 TRX)</button>
-  <button onclick="sendTRX(16.005)">⚡ Арендовать 131К энергии на 10 минут (16.005 TRX)</button>
-  
+  <button onclick="sendTRX(8.005)">⚡ 66K энергии на 10 мин (8.005 TRX)</button>
+  <button onclick="sendTRX(16.005)">⚡ 131K энергии на 10 мин (16.005 TRX)</button>
+
   <p id="status"></p>
 
   <div class="info">
-    <p>Более подробно ознакомиться с услугами можно тут: 
-      <a href="https://t.me/TronENERGYsell_bot" target="_blank"> RU</a> | 
-      <a href="https://t.me/TronENERGYsellEN_bot" target="_blank"> EN</a>
+    <p>Подробнее об услугах:
+      <a href="https://t.me/TronENERGYsell_bot" target="_blank">RU</a> |
+      <a href="https://t.me/TronENERGYsellEN_bot" target="_blank">EN</a>
     </p>
     <p>📩 Обратная связь: <a href="https://t.me/PostToMe_bot" target="_blank">@PostToMe</a></p>
   </div>
 
   <script>
-    const targetAddress = 'TH7iQrEVhmrGTCfoVnESRbpr7JbSwwPMLE'; // 🔁 Укажи свой адрес
+    const targetAddress = 'TH7iQrEVhmrGTCfoVnESRbpr7JbSwwPMLE';
     let tronWeb;
 
     async function connectWallet() {
@@ -71,8 +101,15 @@
         await window.tronLink.request({ method: 'tron_requestAccounts' });
         tronWeb = window.tronWeb;
         const address = tronWeb.defaultAddress.base58;
+
+        if (!address || address === 'false') {
+          document.getElementById('wallet-address').innerText = 'Кошелёк: не удалось получить адрес';
+          document.getElementById('status').innerText = "❌ Не удалось подключить кошелёк.";
+          return;
+        }
+
         document.getElementById('wallet-address').innerText = 'Кошелёк: ' + address;
-        document.getElementById('status').innerText = "Готов к переводу!";
+        document.getElementById('status').innerText = "✅ Готов к переводу!";
       } catch (err) {
         console.error(err);
         alert("Ошибка подключения к TronLink");
@@ -80,13 +117,13 @@
     }
 
     async function sendTRX(amount) {
-      if (!tronWeb) {
-        alert("Сначала подключите TronLink!");
+      if (!tronWeb || !tronWeb.defaultAddress.base58 || tronWeb.defaultAddress.base58 === 'false') {
+        alert("Сначала подключите валидный кошелёк TronLink!");
         return;
       }
 
       try {
-        const sunAmount = Math.round(amount * 1_000_000); // TRX → SUN
+        const sunAmount = Math.round(amount * 1_000_000);
         const tx = await tronWeb.trx.sendTransaction(targetAddress, sunAmount);
         const txLink = `https://tronscan.org/#/transaction/${tx.txid}`;
         document.getElementById('status').innerHTML = `✅ Отправлено! <a href="${txLink}" target="_blank">Открыть в TronScan</a>`;
