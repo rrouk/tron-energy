@@ -41,9 +41,17 @@
       box-shadow: 0 4px 10px rgba(0, 0, 0, 0.08);
     }
 
+    .buttons {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 1rem;
+      margin-top: 1.5rem;
+    }
+
     button {
-      padding: 1rem 2rem;
-      margin: 1rem;
+      width: 280px;
+      padding: 1rem;
       font-size: 1.1rem;
       font-weight: bold;
       border: none;
@@ -99,14 +107,11 @@
 
   <p id="wallet-address">Кошелёк: Не подключен</p>
 
-  <button id="connect-btn">🔌 Подключить TronLink</button>
-  <br>
-
-  <button onclick="sendTRX(8.005)">⚡ 66K энергии на 10 минут</button>
-  <br>
-  
-  <button onclick="sendTRX(16.005)">⚡ 131K энергии на 10 минут</button>
-  <br>
+  <div class="buttons">
+    <button id="connect-btn">🔌 Подключить TronLink</button>
+    <button onclick="sendTRX(8.005)">⚡ 66K энергии на 10 минут</button>
+    <button onclick="sendTRX(16.005)">⚡ 131K энергии на 10 минут</button>
+  </div>
 
   <p id="status"></p>
 
