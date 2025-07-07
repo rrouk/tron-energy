@@ -1,4 +1,4 @@
 User-agent: *
 Allow: /
 
-Sitemap: https://whale-in-tron.github.io/Energy-Tron/sitemap.xml
+Sitemap: https://rrouk.github.io/tron-energy/sitemap.xml
