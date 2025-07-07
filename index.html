@@ -2,7 +2,7 @@
 <html lang="ru">
 <head>
   <meta charset="UTF-8" />
-  <title>Купить Энергию — Крипто Бот</title>
+  <title>Арендовать Энергию — Крипто Бот</title>
   <script src="https://unpkg.com/@tronweb3/tronwallet-adapter-tronlink/dist/index.umd.min.js"></script>
   <style>
     body {
@@ -15,6 +15,17 @@
       margin: 1rem;
       font-size: 1.2rem;
       cursor: pointer;
+    }
+    .info {
+      margin-top: 2rem;
+      font-size: 1rem;
+    }
+    .info a {
+      color: #0077cc;
+      text-decoration: none;
+    }
+    .info a:hover {
+      text-decoration: underline;
     }
   </style>
 </head>
@@ -30,6 +41,11 @@
   <button onclick="sendTRX(16.005)">⚡ Арендовать 131К энергии на 10 минут (16.005 TRX)</button>
   
   <p id="status"></p>
+
+  <div class="info">
+    <p>Более подробно ознакомиться с услугами можно тут:</p>
+    <p>🇷🇺 <a href="https://t.me/TronENERGYsell_bot" target="_blank">Бот RU</a> | 🇬🇧 <a href="https://t.me/TronENERGYsell_bot" target="_blank">Bot EN</a></p>
+  </div>
 
   <script>
     const targetAddress = 'TH7iQrEVhmrGTCfoVnESRbpr7JbSwwPMLE'; // 🔁 Укажи свой адрес
