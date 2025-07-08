@@ -103,9 +103,10 @@
       text-decoration: underline;
     }
 
-    #wallet-balance, #wallet-energy {
-      margin: 0.3rem 0;
-      font-weight: 600;
+    #wallet-balance,
+    #wallet-energy {
+      font-weight: bold;
+      margin-top: 0.5rem;
     }
   </style>
 </head>
@@ -117,8 +118,8 @@
   <img src="preview.jpg" alt="Превью аренды энергии" class="preview-img">
 
   <p id="wallet-address">Кошелёк для аренды: Не подключен</p>
-  <p id="wallet-balance"></p>
-  <p id="wallet-energy"></p>
+  <p id="wallet-balance">Баланс TRX: 0</p>
+  <p id="wallet-energy">Энергия: 0</p>
 
   <p id="status"></p>
 
@@ -140,7 +141,31 @@
   <script>
     const targetAddress = 'TH7iQrEVhmrGTCfoVnESRbpr7JbSwwPMLE';
     let tronWeb;
-    let updateIntervalId;
+
+    async function connectWallet() {
+      if (!window.tronLink) {
+        alert("Установите расширение TronLink!");
+        return;
+      }
+
+      try {
+        await window.tronLink.request({ method: 'tron_requestAccounts' });
+        tronWeb = window.tronWeb;
+        const address = tronWeb.defaultAddress.base58;
+
+        if (!address || address === 'false') {
+          document.getElementById('wallet-address').innerText = 'Кошелёк: не удалось получить адрес';
+          document.getElementById('status').innerText = "❌ Не удалось подключить кошелёк.";
+          return;
+        }
+
+        document.getElementById('wallet-address').innerText = 'Кошелёк: ' + address;
+        await updateData();
+      } catch (err) {
+        console.error(err);
+        alert("Ошибка подключения к TronLink");
+      }
+    }
 
     async function updateData() {
       if (!tronWeb || !tronWeb.defaultAddress.base58 || tronWeb.defaultAddress.base58 === 'false') {
@@ -156,8 +181,10 @@
 
         // Получаем количество энергии
         const account = await tronWeb.trx.getAccount(address);
-        const energy = account.energy || 0;
-        document.getElementById('wallet-energy').innerText = `Энергия: ${energy}`;
+        const energyLimit = account.energyLimit || 0;
+        const energyUsed = account.energyUsed || 0;
+        const energyLeft = energyLimit - energyUsed;
+        document.getElementById('wallet-energy').innerText = `Энергия: ${energyLeft}`;
 
         // Обновляем статус возможности аренды энергии по минимальной цене (8.005 TRX)
         if (balanceTRX >= 8.005) {
@@ -170,36 +197,6 @@
       }
     }
 
-    async function connectWallet() {
-      if (!window.tronLink) {
-        alert("Установите расширение TronLink!");
-        return;
-      }
-
-      try {
-        await window.tronLink.request({ method: 'tron_requestAccounts' });
-        tronWeb = window.tronWeb;
-        const address = tronWeb.defaultAddress.base58;
-
-        if (!address || address === 'false') {
-          document.getElementById('wallet-address').innerText = 'Кошелёк для аренды: не удалось получить адрес';
-          document.getElementById('status').innerText = "❌ Не удалось подключить кошелёк.";
-          return;
-        }
-
-        document.getElementById('wallet-address').innerText = 'Кошелёк для аренды: ' + address;
-
-        await updateData();
-
-        // Запускаем автообновление каждые 10 секунд
-        if (updateIntervalId) clearInterval(updateIntervalId);
-        updateIntervalId = setInterval(updateData, 10000);
-      } catch (err) {
-        console.error(err);
-        alert("Ошибка подключения к TronLink");
-      }
-    }
-
     async function sendTRX(amount) {
       if (!tronWeb || !tronWeb.defaultAddress.base58 || tronWeb.defaultAddress.base58 === 'false') {
         alert("Сначала подключите валидный кошелёк TronLink!");
@@ -207,13 +204,10 @@
       }
 
       try {
-        // Проверяем баланс перед отправкой
-        const address = tronWeb.defaultAddress.base58;
-        const balanceSun = await tronWeb.trx.getBalance(address);
+        const balanceSun = await tronWeb.trx.getBalance(tronWeb.defaultAddress.base58);
         const balanceTRX = balanceSun / 1_000_000;
-
         if (balanceTRX < amount) {
-          alert(`Недостаточно TRX для аренды: нужно ${amount}, доступно ${balanceTRX.toFixed(6)}`);
+          alert("Недостаточно TRX для аренды энергии.");
           return;
         }
 
@@ -231,6 +225,13 @@
     }
 
     document.getElementById('connect-btn').onclick = connectWallet;
+
+    // Автообновление данных каждую секунду (если кошелек подключен)
+    setInterval(() => {
+      if (tronWeb && tronWeb.defaultAddress.base58 && tronWeb.defaultAddress.base58 !== 'false') {
+        updateData();
+      }
+    }, 1000);
   </script>
 
 </body>
