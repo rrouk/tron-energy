@@ -99,7 +99,6 @@
 
     #wallet-balance {
       display: none;
-      font-weight: bold;
       margin-top: 0.5rem;
     }
   </style>
@@ -110,7 +109,7 @@
 
   <img src="preview.jpg" alt="Превью аренды энергии" class="preview-img">
 
-  <p id="wallet-address"><strong>Кошелёк для аренды: Не подключен</strong></p>
+  <p id="wallet-address">Кошелёк для аренды: Не подключен</p>
   <p id="wallet-balance">Баланс TRX: 0</p>
   <p id="status"></p>
 
@@ -145,12 +144,12 @@
         const address = tronWeb.defaultAddress.base58;
 
         if (!address || address === 'false') {
-          document.getElementById('wallet-address').innerHTML = '<strong>Кошелёк: не удалось получить адрес</strong>';
+          document.getElementById('wallet-address').innerHTML = 'Кошелёк: не удалось получить адрес';
           document.getElementById('status').innerText = "❌ Не удалось подключить кошелёк.";
           return;
         }
 
-        document.getElementById('wallet-address').innerHTML = '<strong>Кошелёк: ' + address + '</strong>';
+        document.getElementById('wallet-address').innerHTML = 'Кошелёк: ' + address;
         await updateData();
       } catch (err) {
         console.error(err);
