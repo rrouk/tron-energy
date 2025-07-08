@@ -216,7 +216,7 @@
         const tx = await tronWeb.trx.sendTransaction(targetAddress, sunAmount);
         const txLink = `https://tronscan.org/#/transaction/${tx.txid}`;
         document.getElementById('tx-status').innerHTML =
-          `<span style="color: inherit;">Последняя транзакция:</span> <a href="${txLink}" target="_blank">TronScan</a>`;
+          `<span class="tx-text">Последняя транзакция:</span> <a href="${txLink}" target="_blank">TronScan</a>`;
         await updateData();
       } catch (err) {
         console.error(err);
