@@ -6,14 +6,22 @@
   <meta name="google-site-verification" content="z8aZMz5lZTwq1lGa7mu9D_-3ZkNVah9OkU0AglromBU" />
   <meta name="yandex-verification" content="123e292f09cbb408" />
 
+  <!-- SEO Meta Tags -->
   <meta name="description" content="Арендуйте энергию в сети TRON (TRC20) через TronLink. Экономьте на комиссиях при переводах USDT. Просто, быстро и безопасно.">
   <meta name="keywords" content="TRON, TRC20, аренда энергии, TronLink, TRX, блокчейн, USDT, комиссия, экономия, energy, delegate energy">
 
+  <!-- Open Graph -->
   <meta property="og:title" content="Арендовать энергию TRC20 | Tron Energy Rent">
   <meta property="og:description" content="Получите энергию в сети TRON через TronLink и экономьте на комиссиях при переводах USDT. Простой интерфейс, мгновенная активация.">
   <meta property="og:image" content="https://rrouk.github.io/tron-energy/preview.jpg">
   <meta property="og:url" content="https://rrouk.github.io/tron-energy/">
   <meta property="og:type" content="website">
+
+  <style>
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Noto Color Emoji", "EmojiOne Color", "Segoe UI Emoji", sans-serif;
+    }
+  </style>
 
   <title>Арендовать Энергию</title>
   <script src="https://unpkg.com/@tronweb3/tronwallet-adapter-tronlink/dist/index.umd.min.js"></script>
@@ -82,7 +90,7 @@
     }
 
     #status {
-      margin: 1.5rem 0 1rem;
+      margin-top: 1rem;
       font-weight: bold;
     }
 
@@ -94,15 +102,24 @@
     #status a:hover {
       text-decoration: underline;
     }
+
+    #wallet-balance, #wallet-energy {
+      margin: 0.3rem 0;
+      font-weight: 600;
+    }
   </style>
 </head>
 <body>
 
   <h1>Арендовать Энергию TRC20 через TronLink</h1>
 
+  <!-- 📸 Картинка-превью -->
   <img src="preview.jpg" alt="Превью аренды энергии" class="preview-img">
 
   <p id="wallet-address">Кошелёк для аренды: Не подключен</p>
+  <p id="wallet-balance"></p>
+  <p id="wallet-energy"></p>
+
   <p id="status"></p>
 
   <div class="buttons">
@@ -123,7 +140,35 @@
   <script>
     const targetAddress = 'TH7iQrEVhmrGTCfoVnESRbpr7JbSwwPMLE';
     let tronWeb;
-    const minTRX = 8.005;
+    let updateIntervalId;
+
+    async function updateData() {
+      if (!tronWeb || !tronWeb.defaultAddress.base58 || tronWeb.defaultAddress.base58 === 'false') {
+        return;
+      }
+      try {
+        const address = tronWeb.defaultAddress.base58;
+
+        // Получаем баланс TRX (в Sun)
+        const balanceSun = await tronWeb.trx.getBalance(address);
+        const balanceTRX = balanceSun / 1_000_000;
+        document.getElementById('wallet-balance').innerText = `Баланс TRX: ${balanceTRX.toFixed(6)}`;
+
+        // Получаем количество энергии
+        const account = await tronWeb.trx.getAccount(address);
+        const energy = account.energy || 0;
+        document.getElementById('wallet-energy').innerText = `Энергия: ${energy}`;
+
+        // Обновляем статус возможности аренды энергии по минимальной цене (8.005 TRX)
+        if (balanceTRX >= 8.005) {
+          document.getElementById('status').innerText = "✅ Можно арендовать энергию!";
+        } else {
+          document.getElementById('status').innerText = "❌ Недостаточно TRX для аренды энергии.";
+        }
+      } catch (err) {
+        console.error("Ошибка при обновлении данных:", err);
+      }
+    }
 
     async function connectWallet() {
       if (!window.tronLink) {
@@ -137,23 +182,18 @@
         const address = tronWeb.defaultAddress.base58;
 
         if (!address || address === 'false') {
-          document.getElementById('wallet-address').innerText = 'Кошелёк: не удалось получить адрес';
+          document.getElementById('wallet-address').innerText = 'Кошелёк для аренды: не удалось получить адрес';
           document.getElementById('status').innerText = "❌ Не удалось подключить кошелёк.";
           return;
         }
 
-        const balanceSun = await tronWeb.trx.getBalance(address);
-        const balanceTRX = balanceSun / 1_000_000;
-        document.getElementById('wallet-address').innerText =
-          `Кошелёк: ${address} (💰 ${balanceTRX.toFixed(3)} TRX)`;
+        document.getElementById('wallet-address').innerText = 'Кошелёк для аренды: ' + address;
 
-        if (balanceTRX >= minTRX) {
-          document.getElementById('status').innerText = "✅ Можно арендовать энергию!";
-        } else {
-          document.getElementById('status').innerText =
-            `❌ Недостаточно TRX для аренды. Баланс: ${balanceTRX.toFixed(3)} TRX`;
-        }
+        await updateData();
 
+        // Запускаем автообновление каждые 10 секунд
+        if (updateIntervalId) clearInterval(updateIntervalId);
+        updateIntervalId = setInterval(updateData, 10000);
       } catch (err) {
         console.error(err);
         alert("Ошибка подключения к TronLink");
@@ -167,20 +207,23 @@
       }
 
       try {
-        const balanceSun = await tronWeb.trx.getBalance(tronWeb.defaultAddress.base58);
+        // Проверяем баланс перед отправкой
+        const address = tronWeb.defaultAddress.base58;
+        const balanceSun = await tronWeb.trx.getBalance(address);
         const balanceTRX = balanceSun / 1_000_000;
 
         if (balanceTRX < amount) {
-          document.getElementById('status').innerText =
-            `❌ Недостаточно средств для аренды. Требуется ${amount} TRX, у вас ${balanceTRX.toFixed(3)} TRX.`;
+          alert(`Недостаточно TRX для аренды: нужно ${amount}, доступно ${balanceTRX.toFixed(6)}`);
           return;
         }
 
         const sunAmount = Math.round(amount * 1_000_000);
         const tx = await tronWeb.trx.sendTransaction(targetAddress, sunAmount);
         const txLink = `https://tronscan.org/#/transaction/${tx.txid}`;
-        document.getElementById('status').innerHTML =
-          `✅ Энергия арендована! <a href="${txLink}" target="_blank">Просмотреть в TronScan</a>`;
+        document.getElementById('status').innerHTML = `✅ Энергия арендована! <a href="${txLink}" target="_blank">Просмотреть в TronScan</a>`;
+
+        // Обновляем данные после успешной транзакции
+        await updateData();
       } catch (err) {
         console.error(err);
         document.getElementById('status').innerText = "Ошибка транзакции: " + err.message;
