@@ -101,6 +101,21 @@
       display: none;
       margin-top: 0.5rem;
     }
+
+    #tx-status {
+      margin-top: 0.5rem;
+      font-weight: bold;
+      color: green;
+    }
+
+    #tx-status a {
+      color: green;
+      text-decoration: none;
+    }
+
+    #tx-status a:hover {
+      text-decoration: underline;
+    }
   </style>
 </head>
 <body>
@@ -112,6 +127,7 @@
   <p id="wallet-address">Кошелёк для аренды: Не подключен</p>
   <p id="wallet-balance">Баланс TRX: 0</p>
   <p id="status"></p>
+  <p id="tx-status"></p>
 
   <div class="buttons">
     <button id="connect-btn">🔌 Подключить TronLink</button>
@@ -175,6 +191,8 @@
         } else {
           document.getElementById('status').innerText = "❌ Недостаточно TRX для аренды энергии.";
         }
+
+        // НЕ трогаем #tx-status здесь, чтобы не затирать ссылку
       } catch (err) {
         console.error("Ошибка при обновлении данных:", err);
       }
@@ -197,11 +215,12 @@
         const sunAmount = Math.round(amount * 1_000_000);
         const tx = await tronWeb.trx.sendTransaction(targetAddress, sunAmount);
         const txLink = `https://tronscan.org/#/transaction/${tx.txid}`;
-        document.getElementById('status').innerHTML = `✅ Энергия арендована! <a href="${txLink}" target="_blank">Просмотреть в TronScan</a>`;
+        document.getElementById('tx-status').innerHTML =
+          `✅ Последняя транзакция: <a href="${txLink}" target="_blank">Просмотреть в TronScan</a>`;
         await updateData();
       } catch (err) {
         console.error(err);
-        document.getElementById('status').innerText = "Ошибка транзакции: " + err.message;
+        document.getElementById('tx-status').innerText = "Ошибка транзакции: " + err.message;
       }
     }
 
