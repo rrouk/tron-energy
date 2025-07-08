@@ -5,22 +5,13 @@
   <meta name="robots" content="index, follow">
   <meta name="google-site-verification" content="z8aZMz5lZTwq1lGa7mu9D_-3ZkNVah9OkU0AglromBU" />
   <meta name="yandex-verification" content="123e292f09cbb408" />
-
   <meta name="description" content="Арендуйте энергию в сети TRON (TRC20) через TronLink. Экономьте на комиссиях при переводах USDT. Просто, быстро и безопасно.">
   <meta name="keywords" content="TRON, TRC20, аренда энергии, TronLink, TRX, блокчейн, USDT, комиссия, экономия, energy, delegate energy">
-
   <meta property="og:title" content="Арендовать энергию TRC20 | Tron Energy Rent">
   <meta property="og:description" content="Получите энергию в сети TRON через TronLink и экономьте на комиссиях при переводах USDT. Простой интерфейс, мгновенная активация.">
   <meta property="og:image" content="https://rrouk.github.io/tron-energy/preview.jpg">
   <meta property="og:url" content="https://rrouk.github.io/tron-energy/">
   <meta property="og:type" content="website">
-
-  <style>
-    body {
-      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Noto Color Emoji", "EmojiOne Color", "Segoe UI Emoji", sans-serif;
-    }
-  </style>
-
   <title>Арендовать Энергию</title>
   <script src="https://unpkg.com/@tronweb3/tronwallet-adapter-tronlink/dist/index.umd.min.js"></script>
 
@@ -101,8 +92,8 @@
       text-decoration: underline;
     }
 
-    #wallet-balance,
-    #wallet-energy {
+    #wallet-balance {
+      display: none;
       font-weight: bold;
       margin-top: 0.5rem;
     }
@@ -116,8 +107,6 @@
 
   <p id="wallet-address">Кошелёк для аренды: Не подключен</p>
   <p id="wallet-balance">Баланс TRX: 0</p>
-  <p id="wallet-energy">Энергия: 0</p>
-
   <p id="status"></p>
 
   <div class="buttons">
@@ -151,12 +140,12 @@
         const address = tronWeb.defaultAddress.base58;
 
         if (!address || address === 'false') {
-          document.getElementById('wallet-address').innerText = 'Кошелёк для аренды: не удалось получить адрес';
+          document.getElementById('wallet-address').innerText = 'Кошелёк: не удалось получить адрес';
           document.getElementById('status').innerText = "❌ Не удалось подключить кошелёк.";
           return;
         }
 
-        document.getElementById('wallet-address').innerText = 'Кошелёк для аренды: ' + address;
+        document.getElementById('wallet-address').innerText = 'Кошелёк: ' + address;
         await updateData();
       } catch (err) {
         console.error(err);
@@ -171,22 +160,12 @@
       try {
         const address = tronWeb.defaultAddress.base58;
 
-        // Баланс TRX в Sun и TRX
         const balanceSun = await tronWeb.trx.getBalance(address);
         const balanceTRX = balanceSun / 1_000_000;
+
+        document.getElementById('wallet-balance').style.display = 'block';
         document.getElementById('wallet-balance').innerText = `Баланс TRX: ${balanceTRX.toFixed(6)}`;
 
-        // Получаем ресурсы аккаунта (энергия)
-        const accountResource = await tronWeb.trx.getAccountResource(address);
-
-        let energy = 0;
-        if (accountResource && accountResource.EnergyLimit !== undefined && accountResource.EnergyUsed !== undefined) {
-          energy = accountResource.EnergyLimit - accountResource.EnergyUsed;
-        }
-
-        document.getElementById('wallet-energy').innerText = `Энергия: ${energy}`;
-
-        // Статус возможности аренды по минимальной цене
         if (balanceTRX >= 8.005) {
           document.getElementById('status').innerText = "✅ Можно арендовать энергию!";
         } else {
@@ -215,7 +194,6 @@
         const tx = await tronWeb.trx.sendTransaction(targetAddress, sunAmount);
         const txLink = `https://tronscan.org/#/transaction/${tx.txid}`;
         document.getElementById('status').innerHTML = `✅ Энергия арендована! <a href="${txLink}" target="_blank">Просмотреть в TronScan</a>`;
-
         await updateData();
       } catch (err) {
         console.error(err);
@@ -231,6 +209,5 @@
       }
     }, 1000);
   </script>
-
 </body>
 </html>
