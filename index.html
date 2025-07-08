@@ -191,7 +191,7 @@
         const balanceSun = await tronWeb.trx.getBalance(tronWeb.defaultAddress.base58);
         const balanceTRX = balanceSun / 1_000_000;
         if (balanceTRX < amount) {
-          alert("Недостаточно TRX для аренды энергии.");
+          alert(`Недостаточно TRX для аренды: нужно ${amount}, доступно ${balanceTRX.toFixed(6)}`);
           return;
         }
 
