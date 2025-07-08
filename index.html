@@ -105,7 +105,8 @@
     #tx-status {
       margin-top: 0.5rem;
       font-weight: bold;
-      color: green;
+      /* Цвет убран, чтобы не красить весь текст в зеленый */
+      color: inherit;
     }
 
     #tx-status a {
@@ -115,6 +116,10 @@
 
     #tx-status a:hover {
       text-decoration: underline;
+    }
+
+    .tx-text {
+      color: inherit; /* наследуем цвет от #tx-status, который теперь не зеленый */
     }
   </style>
 </head>
@@ -192,7 +197,7 @@
           document.getElementById('status').innerText = "❌ Недостаточно TRX для аренды энергии.";
         }
 
-        // НЕ трогаем #tx-status здесь, чтобы не затирать ссылку
+        // НЕ меняем #tx-status, чтобы не стирать ссылку на последнюю транзакцию
       } catch (err) {
         console.error("Ошибка при обновлении данных:", err);
       }
