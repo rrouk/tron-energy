@@ -137,8 +137,8 @@
 
   <div class="buttons">
     <button id="connect-btn">🔌 Подключить TronLink</button>
-    <button onclick="sendTRX(8.005)">⚡ 66K энергии на 10 минут</button>
-    <button onclick="sendTRX(16.005)">⚡ 131K энергии на 10 минут</button>
+    <button onclick="sendTRX(8.006)">⚡ 66K энергии на 10 минут</button>
+    <button onclick="sendTRX(16.006)">⚡ 131K энергии на 10 минут</button>
   </div>
 
   <div class="info">
@@ -192,7 +192,7 @@
         document.getElementById('wallet-balance').style.display = 'block';
         document.getElementById('wallet-balance').innerText = `Баланс TRX: ${balanceTRX.toFixed(6)}`;
 
-        if (balanceTRX >= 8.005) {
+        if (balanceTRX >= 8.006) {
           document.getElementById('status').innerText = "✅ Можно арендовать энергию!";
         } else {
           document.getElementById('status').innerText = "❌ Недостаточно TRX для аренды энергии.";
