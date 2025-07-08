@@ -2,16 +2,21 @@
 <html lang="ru">
 <head>
   <meta charset="UTF-8" />
+  
   <meta name="robots" content="index, follow">
+  
   <meta name="google-site-verification" content="z8aZMz5lZTwq1lGa7mu9D_-3ZkNVah9OkU0AglromBU" />
   <meta name="yandex-verification" content="123e292f09cbb408" />
+  
   <meta name="description" content="Арендуйте энергию в сети TRON (TRC20) через TronLink. Экономьте на комиссиях при переводах USDT. Просто, быстро и безопасно.">
   <meta name="keywords" content="TRON, TRC20, аренда энергии, TronLink, TRX, блокчейн, USDT, комиссия, экономия, energy, delegate energy">
+  
   <meta property="og:title" content="Арендовать энергию TRC20 | Tron Energy Rent">
   <meta property="og:description" content="Получите энергию в сети TRON через TronLink и экономьте на комиссиях при переводах USDT. Простой интерфейс, мгновенная активация.">
   <meta property="og:image" content="https://rrouk.github.io/tron-energy/preview.jpg">
   <meta property="og:url" content="https://rrouk.github.io/tron-energy/">
   <meta property="og:type" content="website">
+  
   <title>Арендовать Энергию</title>
   <script src="https://unpkg.com/@tronweb3/tronwallet-adapter-tronlink/dist/index.umd.min.js"></script>
 
@@ -105,7 +110,7 @@
 
   <img src="preview.jpg" alt="Превью аренды энергии" class="preview-img">
 
-  <p id="wallet-address">Кошелёк для аренды: Не подключен</p>
+  <p id="wallet-address"><strong>Кошелёк для аренды: Не подключен</strong></p>
   <p id="wallet-balance">Баланс TRX: 0</p>
   <p id="status"></p>
 
@@ -140,12 +145,12 @@
         const address = tronWeb.defaultAddress.base58;
 
         if (!address || address === 'false') {
-          document.getElementById('wallet-address').innerText = 'Кошелёк: не удалось получить адрес';
+          document.getElementById('wallet-address').innerHTML = '<strong>Кошелёк: не удалось получить адрес</strong>';
           document.getElementById('status').innerText = "❌ Не удалось подключить кошелёк.";
           return;
         }
 
-        document.getElementById('wallet-address').innerText = 'Кошелёк: ' + address;
+        document.getElementById('wallet-address').innerHTML = '<strong>Кошелёк: ' + address + '</strong>';
         await updateData();
       } catch (err) {
         console.error(err);
