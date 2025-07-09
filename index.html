@@ -2,16 +2,22 @@
 <html lang="ru">
 <head>
   <meta charset="UTF-8" />
+  
   <meta name="robots" content="index, follow">
+  
   <meta name="google-site-verification" content="z8aZMz5lZTwq1lGa7mu9D_-3ZkNVah9OkU0AglromBU" />
   <meta name="yandex-verification" content="123e292f09cbb408" />
+  
   <meta name="description" content="Арендуйте энергию в сети TRON (TRC20) через TronLink. Экономьте на комиссиях при переводах USDT. Просто, быстро и безопасно.">
   <meta name="keywords" content="TRON, TRC20, аренда энергии, TronLink, TRX, блокчейн, USDT, комиссия, экономия, energy, delegate energy">
+  
   <meta property="og:title" content="Арендовать энергию TRC20 | Tron Energy Rent">
   <meta property="og:description" content="Получите энергию в сети TRON через TronLink и экономьте на комиссиях при переводах USDT. Простой интерфейс, мгновенная активация.">
   <meta property="og:image" content="https://rrouk.github.io/tron-energy/preview.jpg">
   <meta property="og:url" content="https://rrouk.github.io/tron-energy/">
   <meta property="og:type" content="website">
+  
+  <link rel="icon" href="favicon.ico" type="image/x-icon" />
   <title>Арендовать Энергию</title>
   <script src="https://unpkg.com/@tronweb3/tronwallet-adapter-tronlink/dist/index.umd.min.js"></script>
 
@@ -100,6 +106,7 @@
     #tx-status {
       margin-top: 0.5rem;
       font-weight: bold;
+      /* Цвет убран, чтобы не красить весь текст в зеленый */
       color: inherit;
     }
 
@@ -113,22 +120,7 @@
     }
 
     .tx-text {
-      color: inherit;
-    }
-
-    #pool-stats {
-      margin-top: 2rem;
-      padding: 1rem;
-      background: #fff;
-      border-radius: 12px;
-      box-shadow: 0 4px 10px rgba(0,0,0,0.05);
-      white-space: pre-wrap;
-      text-align: left;
-      max-width: 700px;
-      margin-left: auto;
-      margin-right: auto;
-      font-family: monospace;
-      font-size: 0.95rem;
+      color: inherit; /* наследуем цвет от #tx-status, который теперь не зеленый */
     }
   </style>
 </head>
@@ -145,9 +137,8 @@
 
   <div class="buttons">
     <button id="connect-btn">🔌 Подключить TronLink</button>
-    <button onclick="sendTRX(8.005)">⚡ 66K энергии на 10 минут</button>
-    <button onclick="sendTRX(16.005)">⚡ 131K энергии на 10 минут</button>
-    <button onclick="fetchStats()">📊 Статистика пула</button>
+    <button onclick="sendTRX(8.006)">⚡ 66K энергии на 10 минут</button>
+    <button onclick="sendTRX(16.006)">⚡ 131K энергии на 10 минут</button>
   </div>
 
   <div class="info">
@@ -158,8 +149,6 @@
     </p>
     <p>📩 Обратная связь: <a href="https://t.me/PostToMe_bot" target="_blank">@PostToMe</a></p>
   </div>
-
-  <pre id="pool-stats"></pre>
 
   <script>
     const targetAddress = 'TH7iQrEVhmrGTCfoVnESRbpr7JbSwwPMLE';
@@ -196,18 +185,20 @@
       }
       try {
         const address = tronWeb.defaultAddress.base58;
+
         const balanceSun = await tronWeb.trx.getBalance(address);
         const balanceTRX = balanceSun / 1_000_000;
 
         document.getElementById('wallet-balance').style.display = 'block';
         document.getElementById('wallet-balance').innerText = `Баланс TRX: ${balanceTRX.toFixed(6)}`;
 
-        if (balanceTRX >= 8.005) {
+        if (balanceTRX >= 8.006) {
           document.getElementById('status').innerText = "✅ Можно арендовать энергию!";
         } else {
           document.getElementById('status').innerText = "❌ Недостаточно TRX для аренды энергии.";
         }
 
+        // НЕ меняем #tx-status, чтобы не стирать ссылку на последнюю транзакцию
       } catch (err) {
         console.error("Ошибка при обновлении данных:", err);
       }
@@ -236,32 +227,6 @@
       } catch (err) {
         console.error(err);
         document.getElementById('tx-status').innerText = "Ошибка транзакции: " + err.message;
-      }
-    }
-
-    async function fetchStats() {
-      const username = "1111111111";
-      const password = "xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"; // ⚠️ Не публикуй в продакшене
-      const url = "https://ng-sale.ru:32543/api/tronv1/statistik_pool";
-
-      const headers = new Headers();
-      headers.set('Authorization', 'Basic ' + btoa(username + ":" + password));
-
-      try {
-        const response = await fetch(url, {
-          method: "GET",
-          headers: headers
-        });
-
-        if (!response.ok) {
-          throw new Error("Ошибка запроса: " + response.status);
-        }
-
-        const text = await response.text();
-        document.getElementById("pool-stats").textContent = text;
-      } catch (err) {
-        console.error("Ошибка при получении данных:", err);
-        document.getElementById("pool-stats").textContent = "Ошибка запроса: " + err.message;
       }
     }
 
