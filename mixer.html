@@ -1,0 +1,710 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MixWallet DApp (на основе ABI)</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+            background-color: #f4f4f4;
+            color: #333;
+        }
+        .container {
+            max-width: 900px;
+            margin: 0 auto;
+            background: #fff;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+        }
+        h1, h2, h3 {
+            color: #007bff;
+        }
+        .section {
+            margin-bottom: 20px;
+            padding: 15px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            background-color: #f9f9f9;
+        }
+        label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: bold;
+        }
+        input[type="text"], input[type="number"] {
+            width: calc(100% - 22px);
+            padding: 10px;
+            margin-bottom: 10px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+        }
+        button {
+            background-color: #007bff;
+            color: white;
+            padding: 10px 15px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 16px;
+            margin-right: 10px;
+            margin-bottom: 10px;
+        }
+        button:hover {
+            background-color: #0056b3;
+        }
+        .result {
+            margin-top: 10px;
+            padding: 10px;
+            background-color: #e9ecef;
+            border-radius: 4px;
+            word-wrap: break-word;
+            white-space: normal;
+        }
+        .result p {
+            margin: 0;
+            padding: 2px 0;
+        }
+        .error {
+            color: red;
+            margin-top: 10px;
+        }
+        hr {
+            border: 0;
+            height: 1px;
+            background: #ccc;
+            margin: 20px 0;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>MixWallet Анонимный кошелек</h1>
+        <hr>
+
+        <div class="section">
+            <h2>Настройка кошелька</h2>
+            <label for="contractAddress">Адрес контракта MixWallet:</label>
+            <input type="text" id="contractAddress" value="TCNPtcMrEouDSBcg9tuf4FSQEm3auXknW5">
+            <label for="usdtContractAddress">Адрес контракта USDT TRC20:</label>
+            <input type="text" id="usdtContractAddress" value="TXYZopYRdj2D9XRtbG411XZZ3kM5VkAeBf">
+            <button onclick="initializeTronWeb()">Подключить TronLink</button>
+            <div id="connectionStatus" class="result"></div>
+        </div>
+
+        <div class="section">
+            <h2>Основные действия с кошельком</h2>
+
+            <button onclick="checkBalance()">Мой баланс</button>
+            <div id="balanceResult" class="result"></div>
+            <div id="balanceError" class="error"></div>
+            <hr>
+            <button onclick="createHashAddress()">Создать хеш-адрес</button>
+            <div id="createHashResult" class="result"></div>
+            <div id="createHashError" class="error"></div>
+            <hr>
+            <button onclick="myHashAddress()">Показать мои хеш-адреса</button>
+            <div id="myHashAddressesResult" class="result"></div>
+            <div id="myHashAddressesError" class="error"></div>
+            <hr>
+            <button onclick="deleteHashAddresses()">Удалить все хеш-адреса</button>
+            <div id="deleteHashResult" class="result"></div>
+            <div id="deleteHashError" class="error"></div>
+        </div>
+
+        <div class="section">
+            <h2>Внесение средств на счет</h2>
+
+            <h3>Внесение TRX на счет</h3>
+            <label for="depositTrxAmount">Сумма (TRX):</label>
+            <input type="number" id="depositTrxAmount" placeholder="например, 100">
+            <label for="depositTrxRecipientHash">Хеш-адрес получателя (необязательно, для внутреннего перевода):</label>
+            <input type="text" id="depositTrxRecipientHash" placeholder="Оставьте пустым для самопополнения (0x0...)">
+            <button onclick="depositTRX()">Внести TRX</button>
+            <div id="depositTrxResult" class="result"></div>
+            <div id="depositTrxError" class="error"></div>
+            <hr>
+
+            <h3>Внесение USDT на счет</h3>
+            <label for="depositUsdtAmount">Сумма (USDT):</label>
+            <input type="number" id="depositUsdtAmount" placeholder="например, 50">
+            <label for="depositUsdtRecipientHash">Хеш-адрес получателя (необязательно, для внутреннего перевода):</label>
+            <input type="text" id="depositUsdtRecipientHash" placeholder="Оставьте пустым для самопополнения (0x0...)">
+            <button onclick="depositUSDT()">Внести USDT</button>
+            <div id="depositUsdtResult" class="result"></div>
+            <div id="depositUsdtError" class="error"></div>
+        </div>
+
+        <div class="section">
+            <h2>Переводы на хеш-адреса</h2>
+
+            <h3>Перевод TRX на хеш-адрес</h3>
+            <label for="transferTrxRecipientHash">Хеш-адрес получателя:</label>
+            <input type="text" id="transferTrxRecipientHash" placeholder="Введите 0x... хеш-адрес">
+            <label for="transferTrxAmount">Сумма (TRX):</label>
+            <input type="number" id="transferTrxAmount" placeholder="например, 10">
+            <button onclick="transferTRXToHash()">Перевести TRX</button>
+            <div id="transferTrxResult" class="result"></div>
+            <div id="transferTrxError" class="error"></div>
+            <hr>
+
+            <h3>Перевод USDT на хеш-адрес</h3>
+            <label for="transferUsdtRecipientHash">Хеш-адрес получателя:</label>
+            <input type="text" id="transferUsdtRecipientHash" placeholder="Введите 0x... хеш-адрес">
+            <label for="transferUsdtAmount">Сумма (USDT):</label>
+            <input type="number" id="transferUsdtAmount" placeholder="например, 5">
+            <button onclick="transferUSDTToHash()">Перевести USDT</button>
+            <div id="transferUsdtResult" class="result"></div>
+            <div id="transferUsdtError" class="error"></div>
+        </div>
+
+        <div class="section">
+            <h2>Вывод средств</h2>
+
+            <h3>Вывод TRX</h3>
+            <label for="withdrawTrxAmount">Сумма (TRX):</label>
+            <input type="number" id="withdrawTrxAmount" placeholder="например, 20">
+            <button onclick="withdrawTRX()">Вывести TRX</button>
+            <div id="withdrawTrxResult" class="result"></div>
+            <div id="withdrawTrxError" class="error"></div>
+            <hr>
+
+            <h3>Вывод USDT</h3>
+            <label for="withdrawUsdtAmount">Сумма (USDT):</label>
+            <input type="number" id="withdrawUsdtAmount" placeholder="например, 10">
+            <button onclick="withdrawUSDT()">Вывести USDT</button>
+            <div id="withdrawUsdtResult" class="result"></div>
+            <div id="withdrawUsdtError" class="error"></div>
+        </div>
+
+    </div>
+
+    <script src="https://unpkg.com/tronweb@4.0.0/dist/TronWeb.min.js"></script>
+    <script>
+        let tronWeb;
+        let mixWalletContract;
+        let usdtContract;
+        let connectedAccount;
+
+        // --- Конфигурация ---
+        const MULTIPLIERUSDT = 1_000_000; // USDT имеет 6 знаков после запятой
+        const MULTIPLIERTRX = 1_000_000; // TRX (SUN) также использует 6 "SUN" на TRX (1 TRX = 1,000,000 SUN)
+
+        // Ваш предоставленный ABI
+        const mixWalletABI = [
+            {"inputs":[{"name":"_storeAddress","type":"address"},{"name":"_trc20usdt","type":"address"}],"stateMutability":"Nonpayable","type":"Constructor"},
+            {"inputs":[{"indexed":true,"name":"owner","type":"address"},{"name":"amount","type":"uint256"}],"name":"CommissionPaid","type":"Event"},
+            {"inputs":[{"indexed":true,"name":"user","type":"address"},{"name":"amount","type":"uint256"}],"name":"Deposit","type":"Event"},
+            {"inputs":[{"indexed":true,"name":"user","type":"address"},{"name":"amount","type":"uint256"}],"name":"Transfer","type":"Event"},
+            {"inputs":[{"indexed":true,"name":"user","type":"address"},{"name":"amount","type":"uint256"}],"name":"Withdraw","type":"Event"},
+            {"outputs":[{"name":"trxBalance","type":"uint256"},{"name":"usdtBalance","type":"uint256"},{"name":"hashAddress","type":"bytes32"},{"name":"availableWithdrawTrxAmount","type":"uint256"},{"name":"availableWithdrawUsdtAmount","type":"uint256"},{"name":"trxCommission","type":"uint256"},{"name":"usdtCommission","type":"uint256"}],"name":"CheckBalance","stateMutability":"view","type":"function"},
+            {"outputs":[{"name":"trxBalance","type":"uint256"},{"name":"usdtBalance","type":"uint256"},{"name":"hashAddress","type":"bytes32"},{"name":"availableWithdrawTrxAmount","type":"uint256"},{"name":"availableWithdrawUsdtAmount","type":"uint256"},{"name":"trxCommission","type":"uint256"},{"name":"usdtCommission","type":"uint256"}],"name":"CreateHashAddress","stateMutability":"nonpayable","type":"function"},
+            {"name":"DeleteHashAddresses","stateMutability":"nonpayable","type":"function"},
+            {"outputs":[{"name":"senderBalance","type":"uint256"},{"name":"recipientHash","type":"bytes32"},{"name":"recipientBalanceTransfer","type":"uint256"}],"inputs":[{"name":"recipientHashAddress","type":"bytes32"}],"name":"Deposit_TRX","stateMutability":"payable","type":"function"},
+            {"outputs":[{"name":"usdtBalance","type":"uint256"},{"name":"hashAddress","type":"bytes32"},{"name":"recipientBalanceTransfer","type":"uint256"}],"inputs":[{"name":"recipientHashAddress","type":"bytes32"},{"name":"amount","type":"uint256"}],"name":"Deposit_USDT","stateMutability":"nonpayable","type":"function"},
+            {"outputs":[{"type":"bytes32[]"}],"name":"MyHashAddress","stateMutability":"view","type":"function"},
+            {"outputs":[{"name":"hashAddress","type":"bytes32"},{"name":"balance","type":"uint256"},{"name":"recipientHash","type":"bytes32"},{"name":"transferredAmount","type":"uint256"}],"inputs":[{"name":"recipientHashAddress","type":"bytes32"},{"name":"amount","type":"uint256"}],"name":"TransferTRX_ToHashAddress","stateMutability":"nonpayable","type":"function"},
+            {"outputs":[{"name":"hashAddress","type":"bytes32"},{"name":"balance","type":"uint256"},{"name":"recipientHash","type":"bytes32"},{"name":"transferredAmount","type":"uint256"}],"inputs":[{"name":"recipientHashAddress","type":"bytes32"},{"name":"amount","type":"uint256"}],"name":"TransferUSDT_ToHashAddress","stateMutability":"nonpayable","type":"function"},
+            {"outputs":[{"name":"balance","type":"uint256"},{"name":"hashAddress","type":"bytes32"},{"name":"availableAmount","type":"uint256"}],"inputs":[{"name":"amount","type":"uint256"}],"name":"Withdraw_TRX","stateMutability":"nonpayable","type":"function"},
+            {"outputs":[{"name":"balance","type":"uint256"},{"name":"hashAddress","type":"bytes32"},{"name":"availableAmount","type":"uint256"}],"inputs":[{"name":"amount","type":"uint256"}],"name":"Withdraw_USDT","stateMutability":"nonpayable","type":"function"},
+            {"outputs":[{"name":"trxCommission","type":"uint256"},{"name":"usdtCommission","type":"uint256"}],"name":"checkBalanceCommission","stateMutability":"view","type":"function"},
+            {"outputs":[{"name":"rateTRX","type":"uint256"},{"name":"minimumTRX","type":"uint256"},{"name":"maximumTRX","type":"uint256"},{"name":"depbonusTRX","type":"uint256"},{"name":"rateUSDT","type":"uint256"},{"name":"minimumUSDT","type":"uint256"},{"name":"maximumUSDT","type":"uint256"},{"name":"depbonusUSDT","type":"uint256"}],"name":"getCommissions","stateMutability":"view","type":"function"},
+            {"name":"ownerWithdraw_TRXCommission","stateMutability":"nonpayable","type":"function"},
+            {"name":"ownerWithdraw_USDTCommission","stateMutability":"nonpayable","type":"function"},
+            {"outputs":[{"type":"bytes32"}],"name":"requestTestStore","stateMutability":"view","type":"function"},
+            {"inputs":[{"name":"_commissionPaidAddress","type":"address"}],"name":"setCommissionPaidAddress","stateMutability":"nonpayable","type":"function"},
+            {"inputs":[{"name":"newRateTRX","type":"uint256"},{"name":"newMinimumTRX","type":"uint256"},{"name":"newMaximumTRX","type":"uint256"},{"name":"newDepBonusTRX","type":"uint256"},{"name":"newRateUSDT","type":"uint256"},{"name":"newMinimumUSDT","type":"uint256"},{"name":"newMaximumUSDT","type":"uint256"},{"name":"newDepBonusUSDT","type":"uint256"}],"name":"setCommissions","stateMutability":"nonpayable","type":"function"},
+            {"inputs":[{"name":"newMultiplierUSDT","type":"uint256"},{"name":"newMultiplierTRX","type":"uint256"}],"name":"setMultipliers","stateMutability":"nonpayable","type":"function"},
+            {"inputs":[{"name":"newOwner","type":"address"}],"name":"setOwner","stateMutability":"nonpayable","type":"function"},
+            {"inputs":[{"name":"_store","type":"address"}],"name":"setStoreAddress","stateMutability":"nonpayable","type":"function"},
+            {"inputs":[{"name":"trc20ContractAddress","type":"address"}],"name":"setUsdtTokenAddress","stateMutability":"nonpayable","type":"function"},
+            {"name":"someFunction","stateMutability":"nonpayable","type":"function"},
+            {"outputs":[{"type":"address"}],"name":"trc20usdt","stateMutability":"view","type":"function"}
+        ];
+
+
+        // Стандартный TRC20 ABI (для USDT)
+        const trc20Abi = [
+            { "constant": true, "inputs": [{ "name": "_owner", "type": "address" }], "name": "balanceOf", "outputs": [{ "name": "balance", "type": "uint256" }], "type": "function" },
+            { "constant": false, "inputs": [{ "name": "_spender", "type": "address" }, { "name": "_value", "type": "uint256" }], "name": "approve", "outputs": [{ "name": "success", "type": "bool" }], "type": "function" },
+            { "constant": false, "inputs": [{ "name": "_to", "type": "address" }, { "name": "_value", "type": "uint256" }], "name": "transfer", "outputs": [{ "name": "success", "type": "bool" }], "type": "function" },
+            { "constant": false, "inputs": [{ "name": "_from", "type": "address" }, { "name": "_to", "type": "address" }, { "name": "_value", "type": "uint256" }], "name": "transferFrom", "outputs": [{ "name": "success", "type": "bool" }], "type": "function" },
+            { "constant": true, "inputs": [{ "name": "_owner", "type": "address" }, { "name": "_spender", "type": "address" }], "name": "allowance", "outputs": [{ "name": "remaining", "type": "uint256" }], "type": "function" },
+            { "anonymous": false, "inputs": [{ "indexed": true, "name": "_from", "type": "address" }, { "indexed": true, "name": "_to", "type": "address" }, { "name": "_value", "type": "uint256" }], "name": "Transfer", "type": "event" },
+            { "anonymous": false, "inputs": [{ "indexed": true, "name": "_owner", "type": "address" }, { "indexed": true, "name": "_spender", "type": "address" }, { "name": "_value", "type": "uint256" }], "name": "Approval", "type": "event" }
+        ];
+
+
+        // --- Инициализация TronWeb ---
+        async function initializeTronWeb() {
+            const statusDiv = document.getElementById('connectionStatus');
+            statusDiv.innerHTML = '<p>Подключение к TronLink...</p>';
+
+            const mixWalletContractAddress = document.getElementById('contractAddress').value;
+            const usdtTokenAddress = document.getElementById('usdtContractAddress').value;
+
+            if (!mixWalletContractAddress || !usdtTokenAddress) {
+                statusDiv.innerHTML = '<p>Пожалуйста, введите оба адреса контрактов: MixWallet и USDT.</p>';
+                return;
+            }
+
+            if (window.tronWeb && window.tronWeb.defaultAddress.base58) {
+                tronWeb = window.tronWeb;
+                connectedAccount = tronWeb.defaultAddress.base58;
+                statusDiv.innerHTML = `<p>TronLink подключен!</p><p>Ваш адрес: ${connectedAccount}</p>`;
+                console.log("TronLink подключен (изначально):", connectedAccount);
+
+                try {
+                    const accounts = await tronWeb.request({ method: 'tron_requestAccounts' });
+                    if (accounts && accounts.code === 200) {
+                        if (accounts.data && accounts.data.address) {
+                            connectedAccount = accounts.data.address;
+                            statusDiv.innerHTML = `<p>TronLink подключен!</p><p>Ваш адрес: ${connectedAccount}</p>`;
+                            console.log("Запрос аккаунта успешен, обновлен до:", connectedAccount);
+                        } else {
+                            console.log("Запрос аккаунта успешен (код 200), но новых данных адреса нет. Используется текущий подключенный адрес из tronWeb.defaultAddress.base58.");
+                        }
+                    } else if (accounts && accounts.code === 4001) {
+                        statusDiv.innerHTML = '<p>Подключение TronLink отклонено пользователем.</p>';
+                        console.error("Подключение TronLink отклонено пользователем.");
+                        return;
+                    } else {
+                        statusDiv.innerHTML = `<p>Не удалось запросить аккаунт TronLink:</p><p>${(accounts ? accounts.message : 'Неизвестная ошибка')}</p>`;
+                        console.error("Не удалось запросить аккаунт TronLink:", accounts);
+                        return;
+                    }
+                } catch (error) {
+                    statusDiv.innerHTML = `<p>Ошибка при запросе аккаунта TronLink:</p><p>${error.message}</p>`;
+                    console.error("Ошибка при запросе аккаунта TronLink:", error);
+                    return;
+                }
+
+                try {
+                    mixWalletContract = await tronWeb.contract(mixWalletABI, mixWalletContractAddress);
+                    console.log("Контракт MixWallet загружен:", mixWalletContract);
+
+                    usdtContract = await tronWeb.contract(trc20Abi, usdtTokenAddress);
+                    console.log("Контракт USDT загружен:", usdtContract);
+
+                    statusDiv.innerHTML = `
+                        <p>TronLink подключен!</p>
+                        <p>Ваш адрес: ${connectedAccount}</p>
+                        <p>Контракт MixWallet: ${mixWalletContractAddress}</p>
+                        <p>Контракт USDT: ${usdtTokenAddress}</p>
+                    `;
+
+                } catch (error) {
+                    statusDiv.innerHTML = `<p>Ошибка при загрузке контрактов:</p><p>${error.message}</p>`;
+                    console.error("Ошибка при загрузке контрактов:", error);
+                }
+            } else {
+                statusDiv.innerHTML = '<p>TronLink не обнаружен или не подключен.</p><p>Пожалуйста, убедитесь, что TronLink установлен и разблокирован. Повторная попытка через 1 секунду...</p>';
+                console.error("TronLink не обнаружен или не подключен. Повторная попытка...");
+                setTimeout(initializeTronWeb, 1000);
+            }
+        }
+
+        // --- Вспомогательная функция для отображения TRX/USDT ---
+        function formatAmount(amount, multiplier) {
+            if (!tronWeb || tronWeb.toBigNumber(amount).isNaN()) return '0';
+            return tronWeb.toBigNumber(amount).dividedBy(multiplier).toFixed(6);
+        }
+
+        // --- Централизованная проверка доступности TronWeb и аккаунта ---
+        function checkTronWebAndAccount() {
+            const statusDiv = document.getElementById('connectionStatus');
+            if (!tronWeb || !connectedAccount) {
+                statusDiv.textContent = 'Ошибка: TronLink не подключен или аккаунт не обнаружен. Пожалуйста, сначала нажмите "Подключить TronLink".';
+                console.error("TronLink не подключен или аккаунт не обнаружен.");
+                return false;
+            }
+            return true;
+        }
+
+        async function checkBalance() {
+            if (!checkTronWebAndAccount()) return;
+            const resultDiv = document.getElementById('balanceResult');
+            const errorDiv = document.getElementById('balanceError');
+            resultDiv.textContent = 'Получение баланса...';
+            errorDiv.textContent = '';
+            try {
+                if (!mixWalletContract) {
+                    throw new Error("Контракт MixWallet не загружен. Сначала подключите TronLink.");
+                }
+                const result = await mixWalletContract.CheckBalance().call();
+
+                resultDiv.innerHTML = `
+                    <p>Баланс TRX: ${result[0].toString()}</p>
+                    <p>Баланс USDT: ${result[1].toString()}</p>
+                    <p>Хеш-адрес: ${result[2].toString()}</p>
+                    <p>TRX доступно для вывода: ${result[3].toString()}</p>
+                    <p>USDT доступно для вывода: ${result[4].toString()}</p>
+                    <p>Комиссия TRX: ${result[5].toString()}</p>
+                    <p>Комиссия USDT: ${result[6].toString()}</p>
+                `;
+            } catch (error) {
+                errorDiv.textContent = 'Ошибка при проверке баланса: ' + error.message;
+                console.error("Ошибка при проверке баланса:", error);
+            }
+        }
+
+        async function depositTRX() {
+            if (!checkTronWebAndAccount()) return;
+            const amountInput = document.getElementById('depositTrxAmount');
+            const recipientHashInput = document.getElementById('depositTrxRecipientHash');
+            const resultDiv = document.getElementById('depositTrxResult');
+            const errorDiv = document.getElementById('depositTrxError');
+            resultDiv.textContent = 'Отправка транзакции внесения TRX...';
+            errorDiv.textContent = '';
+
+            const amount = parseFloat(amountInput.value);
+            if (isNaN(amount) || amount <= 0) {
+                errorDiv.textContent = 'Пожалуйста, введите допустимую сумму TRX больше 0.';
+                return;
+            }
+            const amountInSun = tronWeb.toSun(amount);
+
+            let recipientHash = recipientHashInput.value.trim();
+            if (recipientHash === '') {
+                recipientHash = '0x0000000000000000000000000000000000000000000000000000000000000000';
+            } else if (!tronWeb.utils.isHex(recipientHash) || recipientHash.length !== 66) {
+                errorDiv.textContent = 'Неверный формат хеш-адреса получателя. Должен быть 0x, за которым следуют 64 шестнадцатеричных символа (например, 0x...).';
+                return;
+            }
+
+            try {
+                if (!mixWalletContract) {
+                    throw new Error("Контракт MixWallet не загружен. Сначала подключите TronLink.");
+                }
+                const txid = await mixWalletContract.Deposit_TRX(recipientHash).send({
+                    callValue: amountInSun,
+                    shouldPollResponse: true
+                });
+
+                resultDiv.innerHTML = `
+                    <p>Транзакция внесения TRX успешна!</p>
+                    <p>Внесено: ${amount} TRX</p>
+                    <p>Внесено на хеш-адрес: ${recipientHash === '0x0000000000000000000000000000000000000000000000000000000000000000' ? 'На собственный счет' : recipientHash}</p>
+                `;
+                console.log("TXID внесения TRX:", txid);
+            } catch (error) {
+                errorDiv.textContent = 'Ошибка при внесении TRX: ' + error.message;
+                console.error("Ошибка при внесении TRX:", error);
+            }
+        }
+
+        async function depositUSDT() {
+            if (!checkTronWebAndAccount()) return;
+            const amountInput = document.getElementById('depositUsdtAmount');
+            const recipientHashInput = document.getElementById('depositUsdtRecipientHash');
+            const resultDiv = document.getElementById('depositUsdtResult');
+            const errorDiv = document.getElementById('depositUsdtError');
+            resultDiv.textContent = 'Отправка транзакции внесения USDT...';
+            errorDiv.textContent = '';
+
+            const amount = parseFloat(amountInput.value);
+            if (isNaN(amount) || amount <= 0) {
+                errorDiv.textContent = 'Пожалуйста, введите допустимую сумму USDT больше 0.';
+                return;
+            }
+            const amountInContractUnits = tronWeb.toBigNumber(amount).multipliedBy(MULTIPLIERUSDT).toFixed(0);
+
+            let recipientHash = recipientHashInput.value.trim();
+            if (recipientHash === '') {
+                recipientHash = '0x0000000000000000000000000000000000000000000000000000000000000000';
+            } else if (!tronWeb.utils.isHex(recipientHash) || recipientHash.length !== 66) {
+                errorDiv.textContent = 'Неверный формат хеш-адреса получателя. Должен быть 0x, за которым следуют 64 шестнадцатеричных символа.';
+                return;
+            }
+
+            try {
+                if (!mixWalletContract) {
+                    throw new Error("Контракт MixWallet не загружен. Сначала подключите TronLink.");
+                }
+
+                const currentAllowance = await usdtContract.allowance(connectedAccount, mixWalletContract.address).call();
+                if (tronWeb.toBigNumber(currentAllowance).lt(amountInContractUnits)) {
+                    resultDiv.textContent = 'Недостаточный лимит USDT. Запрашиваю одобрение...';
+                    const approveTxid = await usdtContract.approve(
+                        mixWalletContract.address,
+                        amountInContractUnits
+                    ).send({ shouldPollResponse: true });
+                    console.log("TXID одобрения USDT:", approveTxid);
+                    resultDiv.innerHTML = `<p>Транзакция одобрения USDT отправлена! TXID: ${approveTxid}. Подтвердите в TronLink, затем попробуйте внести USDT снова.</p>`;
+                    return;
+                }
+
+                const txid = await mixWalletContract.Deposit_USDT(recipientHash, amountInContractUnits).send({
+                    shouldPollResponse: true
+                });
+
+                resultDiv.innerHTML = `
+                    <p>Транзакция внесения USDT успешна!</p>
+                    <p>Внесено: ${amount} USDT</p>
+                    <p>Внесено на хеш-адрес: ${recipientHash === '0x0000000000000000000000000000000000000000000000000000000000000000' ? 'На собственный счет' : recipientHash}</p>
+                `;
+                console.log("TXID внесения USDT:", txid);
+            } catch (error) {
+                errorDiv.textContent = 'Ошибка при внесении USDT: ' + error.message;
+                console.error("Ошибка при внесении USDT:", error);
+            }
+        }
+
+        async function createHashAddress() {
+            if (!checkTronWebAndAccount()) return;
+            const resultDiv = document.getElementById('createHashResult');
+            const errorDiv = document.getElementById('createHashError');
+            resultDiv.textContent = 'Создаю новый хеш-адрес...';
+            errorDiv.textContent = '';
+            try {
+                if (!mixWalletContract) {
+                    throw new Error("Контракт MixWallet не загружен. Сначала подключите TronLink.");
+                }
+                const txid = await mixWalletContract.CreateHashAddress().send({
+                    shouldPollResponse: true
+                });
+
+                resultDiv.innerHTML = `
+                    <p>Хеш-адрес создан!</p>
+                    <p>Просмотреть новый хеш-адрес можно по кнопке <strong>Показать мои хеш-адреса</strong></p>
+                `;
+                console.log("TXID создания хеш-адреса:", txid);
+            } catch (error) {
+                errorDiv.textContent = 'Ошибка при создании хеш-адреса: ' + error.message;
+                console.error("Ошибка при создании хеш-адреса:", error);
+            }
+        }
+
+        async function myHashAddress() {
+            if (!checkTronWebAndAccount()) return;
+            const resultDiv = document.getElementById('myHashAddressesResult');
+            const errorDiv = document.getElementById('myHashAddressesError');
+            resultDiv.textContent = 'Получение хеш-адресов...';
+            errorDiv.textContent = '';
+            try {
+                if (!mixWalletContract) {
+                    throw new Error("Контракт MixWallet не загружен. Сначала подключите TronLink.");
+                }
+                const hashAddresses = await mixWalletContract.MyHashAddress().call();
+
+                if (hashAddresses.length === 0) {
+                    resultDiv.textContent = 'Для вашего аккаунта не найдено хеш-адресов.';
+                } else {
+                    let output = '<p>Ваши хеш-адреса:</p>';
+                    hashAddresses.forEach((hash, index) => {
+                        output += `<p>${index + 1}. ${hash}</p>`;
+                    });
+                    resultDiv.innerHTML = output;
+                }
+            } catch (error) {
+                errorDiv.textContent = 'Ошибка при получении хеш-адресов: ' + error.message;
+                console.error("Ошибка при получении хеш-адресов:", error);
+            }
+        }
+
+        async function transferTRXToHash() {
+            if (!checkTronWebAndAccount()) return;
+            const recipientHashInput = document.getElementById('transferTrxRecipientHash');
+            const amountInput = document.getElementById('transferTrxAmount');
+            const resultDiv = document.getElementById('transferTrxResult');
+            const errorDiv = document.getElementById('transferTrxError');
+            resultDiv.textContent = 'Отправка транзакции перевода TRX на хеш-адрес...';
+            errorDiv.textContent = '';
+
+            const recipientHash = recipientHashInput.value.trim();
+            const amount = parseFloat(amountInput.value);
+
+            if (!tronWeb.utils.isHex(recipientHash) || recipientHash.length !== 66) {
+                errorDiv.textContent = 'Неверный формат хеш-адреса получателя. Должен быть 0x, за которым следуют 64 шестнадцатеричных символа.';
+                return;
+            }
+            if (isNaN(amount) || amount <= 0) {
+                errorDiv.textContent = 'Пожалуйста, введите допустимую сумму TRX больше 0.';
+                return;
+            }
+            const amountInContractUnits = tronWeb.toBigNumber(amount).multipliedBy(MULTIPLIERTRX).toFixed(0);
+
+            try {
+                if (!mixWalletContract) {
+                    throw new Error("Контракт MixWallet не загружен. Сначала подключите TronLink.");
+                }
+                const txid = await mixWalletContract.TransferTRX_ToHashAddress(recipientHash, amountInContractUnits).send({
+                    shouldPollResponse: true
+                });
+
+                resultDiv.innerHTML = `
+                    <p>Транзакция перевода TRX отправлена!</p>
+                    <p>Идентификатор транзакции: ${txid}</p>
+                    <p>Переведено: ${amount} TRX</p>
+                    <p>На хеш-адрес: ${recipientHash}</p>
+                    <p>Проверьте TronLink для подтверждения. Затем нажмите "Мой баланс", чтобы увидеть обновленный баланс.</p>
+                `;
+                console.log("TXID перевода TRX:", txid);
+            } catch (error) {
+                errorDiv.textContent = 'Ошибка при переводе TRX: ' + error.message;
+                console.error("Ошибка при переводе TRX:", error);
+            }
+        }
+
+        async function transferUSDTToHash() {
+            if (!checkTronWebAndAccount()) return;
+            const recipientHashInput = document.getElementById('transferUsdtRecipientHash');
+            const amountInput = document.getElementById('transferUsdtAmount');
+            const resultDiv = document.getElementById('transferUsdtResult');
+            const errorDiv = document.getElementById('transferUsdtError');
+            resultDiv.textContent = 'Отправка транзакции перевода USDT на хеш-адрес...';
+            errorDiv.textContent = '';
+
+            const recipientHash = recipientHashInput.value.trim();
+            const amount = parseFloat(amountInput.value);
+
+            if (!tronWeb.utils.isHex(recipientHash) || recipientHash.length !== 66) {
+                errorDiv.textContent = 'Неверный формат хеш-адреса получателя. Должен быть 0x, за которым следуют 64 шестнадцатеричных символа.';
+                return;
+            }
+            if (isNaN(amount) || amount <= 0) {
+                errorDiv.textContent = 'Пожалуйста, введите допустимую сумму USDT больше 0.';
+                return;
+            }
+            const amountInContractUnits = tronWeb.toBigNumber(amount).multipliedBy(MULTIPLIERUSDT).toFixed(0);
+
+            try {
+                if (!mixWalletContract) {
+                    throw new Error("Контракт MixWallet не загружен. Сначала подключите TronLink.");
+                }
+                const txid = await mixWalletContract.TransferUSDT_ToHashAddress(recipientHash, amountInContractUnits).send({
+                    shouldPollResponse: true
+                });
+
+                resultDiv.innerHTML = `
+                    <p>Транзакция перевода USDT отправлена!</p>
+                    <p>Идентификатор транзакции: ${txid}</p>
+                    <p>Переведено: ${amount} USDT</p>
+                    <p>На хеш-адрес: ${recipientHash}</p>
+                    <p>Проверьте TronLink для подтверждения. Затем нажмите "Мой баланс", чтобы увидеть обновленный баланс.</p>
+                `;
+                console.log("TXID перевода USDT:", txid);
+            } catch (error) {
+                errorDiv.textContent = 'Ошибка при переводе USDT: ' + error.message;
+                console.error("Ошибка при переводе USDT:", error);
+            }
+        }
+
+        async function withdrawTRX() {
+            if (!checkTronWebAndAccount()) return;
+            const amountInput = document.getElementById('withdrawTrxAmount');
+            const resultDiv = document.getElementById('withdrawTrxResult');
+            const errorDiv = document.getElementById('withdrawTrxError');
+            resultDiv.textContent = 'Отправка транзакции по выводу TRX...';
+            errorDiv.textContent = '';
+
+            const amount = parseFloat(amountInput.value);
+            if (isNaN(amount) || amount <= 0) {
+                errorDiv.textContent = 'Введите допустимую сумму TRX больше 0.';
+                return;
+            }
+            const amountInContractUnits = tronWeb.toBigNumber(amount).multipliedBy(MULTIPLIERTRX).toFixed(0);
+
+            try {
+                if (!mixWalletContract) {
+                    throw new Error("Контракт MixWallet не загружен. Сначала подключите TronLink.");
+                }
+                const txid = await mixWalletContract.Withdraw_TRX(amountInContractUnits).send({
+                    shouldPollResponse: true
+                });
+
+                resultDiv.innerHTML = `
+                    <p>Вывод TRX выполнен!</p>
+                    <p>Вы вывели: ${amount} TRX</p>
+                    <p>Проверьте свой адрес TRX в TronLink</p>
+                `;
+                console.log("TXID вывода TRX:", txid);
+            } catch (error) {
+                errorDiv.textContent = 'Ошибка вывода TRX: ' + error.message;
+                console.error("Ошибка вывода TRX:", error);
+            }
+        }
+
+        async function withdrawUSDT() {
+            if (!checkTronWebAndAccount()) return;
+            const amountInput = document.getElementById('withdrawUsdtAmount');
+            const resultDiv = document.getElementById('withdrawUsdtResult');
+            const errorDiv = document.getElementById('withdrawUsdtError');
+            resultDiv.textContent = 'Отправка транзакции по выводу USDT...';
+            errorDiv.textContent = '';
+
+            const amount = parseFloat(amountInput.value);
+            if (isNaN(amount) || amount <= 0) {
+                errorDiv.textContent = 'Введите действительную сумму в USDT больше 0.';
+                return;
+            }
+            const amountInContractUnits = tronWeb.toBigNumber(amount).multipliedBy(MULTIPLIERUSDT).toFixed(0);
+
+            try {
+                if (!mixWalletContract) {
+                    throw new Error("Контракт MixWallet не загружен. Сначала подключите TronLink.");
+                }
+                const txid = await mixWalletContract.Withdraw_USDT(amountInContractUnits).send({
+                    shouldPollResponse: true
+                });
+
+                resultDiv.innerHTML = `
+                    <p>Вывод USDT выполнен!</p>
+                    <p>Вы вывели: ${amount} USDT</p>
+                    <p>Проверьте свой адрес TRX в TronLink</p>
+                `;
+                console.log("TXID вывода USDT:", txid);
+            } catch (error) {
+                errorDiv.textContent = 'Ошибка вывода USDT: ' + error.message;
+                console.error("Ошибка вывода USDT:", error);
+            }
+        }
+
+        async function deleteHashAddresses() {
+            if (!checkTronWebAndAccount()) return;
+            const resultDiv = document.getElementById('deleteHashResult');
+            const errorDiv = document.getElementById('deleteHashError');
+            resultDiv.textContent = 'Отправка транзакции удаления хеш-адресов...';
+            errorDiv.textContent = '';
+            try {
+                if (!mixWalletContract) {
+                    throw new Error("Контракт MixWallet не загружен. Сначала подключите TronLink.");
+                }
+                const txid = await mixWalletContract.DeleteHashAddresses().send({
+                    shouldPollResponse: true
+                });
+
+                resultDiv.innerHTML = `
+                    <p>Все хеш-адреса удалены!</p>
+                `;
+                console.log("TXID удаления хеш-адресов:", txid);
+            } catch (error) {
+                errorDiv.textContent = 'Ошибка удаления хеш-адресов: ' + error.message;
+                console.error("Ошибка удаления хеш-адресов", error);
+            }
+        }
+
+
+        // Инициализация при загрузке страницы
+        window.onload = () => {
+            setTimeout(initializeTronWeb, 500); // Даем TronLink 500мс для инъекции
+        };
+
+        // Слушаем изменения аккаунта TronLink и изменения ноды
+        window.addEventListener('message', function(e) {
+            if (e.data.message && e.data.message.action === "setAccount") {
+                if (e.data.message.data.address) {
+                    console.log('Аккаунт TronLink изменен на:', e.data.message.data.address);
+                    initializeTronWeb(); // Повторная инициализация, если аккаунт изменился
+                }
+            } else if (e.data.message && e.data.message.action === "setNode") {
+                console.log('Нода TronLink изменена:', e.data.message.data.node.fullNode);
+                initializeTronWeb(); // Повторная инициализация, если нода изменилась
+            }
+        });
+
+    </script>
+</body>
+</html>
